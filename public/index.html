@@ -1,0 +1,674 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central State University - Student Information System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .badge-container {
+            margin-top: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        .badge.success {
+            background: #4caf50;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .course-checkbox {
+            margin: 10px 0;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .course-checkbox:hover {
+            background: #e9ecef;
+        }
+
+        .course-checkbox input {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .student-list, .registration-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .student-item, .registration-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .student-item:hover, .registration-item:hover {
+            transform: translateX(5px);
+            background: #e9ecef;
+        }
+
+        .student-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .student-email {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .student-id {
+            color: #999;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .registration-date {
+            color: #999;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .course-list {
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+
+        .course-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+
+        .status-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4caf50;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏫 Central State University</h1>
+            <div class="subtitle">Student Information System (SIS)</div>
+            <div class="badge-container">
+                <span class="badge success">✓ Live on Heroku PaaS</span>
+                <span class="badge">Cloud Computing Assignment</span>
+                <span class="badge">Digital Transformation</span>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>
+                    <span>📝</span>
+                    Register New Student
+                </h3>
+                <input type="text" id="studentName" placeholder="Full Name">
+                <input type="email" id="studentEmail" placeholder="Email Address">
+                <button onclick="registerStudent()">
+                    Register Student
+                </button>
+                <div id="studentAlert" class="alert"></div>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <span>📚</span>
+                    Course Registration
+                </h3>
+                <select id="studentSelect">
+                    <option value="">Select Student</option>
+                </select>
+                <div id="courses">
+                    <div class="course-checkbox">
+                        <input type="checkbox" value="CS101"> CS101 - Introduction to Programming (3 credits)
+                    </div>
+                    <div class="course-checkbox">
+                        <input type="checkbox" value="CS201"> CS201 - Data Structures (3 credits)
+                    </div>
+                    <div class="course-checkbox">
+                        <input type="checkbox" value="MATH101"> MATH101 - Calculus I (4 credits)
+                    </div>
+                    <div class="course-checkbox">
+                        <input type="checkbox" value="ENG101"> ENG101 - Academic Writing (3 credits)
+                    </div>
+                    <div class="course-checkbox">
+                        <input type="checkbox" value="PHY101"> PHY101 - Physics I (4 credits)
+                    </div>
+                    <div class="course-checkbox">
+                        <input type="checkbox" value="BUS101"> BUS101 - Introduction to Business (3 credits)
+                    </div>
+                </div>
+                <button onclick="registerCourses()">
+                    Complete Registration
+                </button>
+                <div id="courseAlert" class="alert"></div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>
+                    <span>👨‍🎓</span>
+                    Registered Students
+                    <span id="studentCount" style="font-size: 0.8em; color: #667eea;"></span>
+                </h3>
+                <div id="studentsList" class="student-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading students...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>
+                    <span>📋</span>
+                    Recent Registrations
+                    <span id="regCount" style="font-size: 0.8em; color: #667eea;"></span>
+                </h3>
+                <div id="registrationsList" class="registration-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading registrations...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar" id="statusBar">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading system status...</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2026 Central State University | Digital Transformation Initiative</p>
+            <p>Platform as a Service (PaaS) Implementation | Microsoft Azure Alternative: Heroku</p>
+        </div>
+    </div>
+
+    <script>
+        let students = [];
+        let registrations = [];
+
+        async function loadData() {
+            await loadStudents();
+            await loadRegistrations();
+            await loadStatus();
+        }
+
+        async function loadStudents() {
+            try {
+                const response = await fetch('/api/students');
+                const data = await response.json();
+
+                if (data.success) {
+                    students = data.data;
+                    displayStudents();
+                    updateStudentSelect();
+                    document.getElementById('studentCount').innerHTML = `(${students.length})`;
+                }
+            } catch (error) {
+                console.error('Error loading students:', error);
+                document.getElementById('studentsList').innerHTML =
+                    '<p style="color: red;">Error loading students. Please refresh the page.</p>';
+            }
+        }
+
+        function displayStudents() {
+            const container = document.getElementById('studentsList');
+
+            if (students.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999;">No students registered yet</p>';
+                return;
+            }
+
+            container.innerHTML = students.map(s => `
+                <div class="student-item">
+                    <div class="student-name">${escapeHtml(s.name)}</div>
+                    <div class="student-email">📧 ${escapeHtml(s.email)}</div>
+                    <div class="student-id">🎓 Student ID: ${s.studentId}</div>
+                    <div class="registration-date">📅 Registered: ${new Date(s.registeredAt).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateStudentSelect() {
+            const select = document.getElementById('studentSelect');
+            select.innerHTML = '<option value="">Select Student</option>';
+            students.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${escapeHtml(s.name)} (${s.studentId})</option>`;
+            });
+        }
+
+        async function registerStudent() {
+            const name = document.getElementById('studentName').value.trim();
+            const email = document.getElementById('studentEmail').value.trim();
+
+            if (!name || !email) {
+                showAlert('studentAlert', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                showAlert('studentAlert', 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/students', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('studentAlert', `✓ ${name} registered successfully! Student ID: ${data.data.studentId}`, 'success');
+                    document.getElementById('studentName').value = '';
+                    document.getElementById('studentEmail').value = '';
+                    await loadStudents();
+
+                    setTimeout(() => {
+                        document.getElementById('studentAlert').className = 'alert';
+                    }, 5000);
+                } else {
+                    showAlert('studentAlert', 'Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('studentAlert', 'Network error. Please try again.', 'error');
+            }
+        }
+
+        async function registerCourses() {
+            const studentId = document.getElementById('studentSelect').value;
+            if (!studentId) {
+                showAlert('courseAlert', 'Please select a student first', 'error');
+                return;
+            }
+
+            const selectedCourses = Array.from(document.querySelectorAll('#courses input:checked'))
+                .map(cb => cb.value);
+
+            if (selectedCourses.length === 0) {
+                showAlert('courseAlert', 'Please select at least one course', 'error');
+                return;
+            }
+
+            const student = students.find(s => s.id == studentId);
+            if (!student) {
+                showAlert('courseAlert', 'Student not found', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/registrations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: student.id,
+                        studentName: student.name,
+                        courses: selectedCourses
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const totalCredits = data.data.totalCredits;
+                    showAlert('courseAlert',
+                        `✓ Registration completed for ${student.name}!<br>
+                        📚 Courses: ${selectedCourses.length}<br>
+                        🎓 Total Credits: ${totalCredits}<br>
+                        💰 Fees: $${totalCredits * 150}<br>
+                        📧 Confirmation email sent!`,
+                        'success'
+                    );
+
+                    document.querySelectorAll('#courses input').forEach(cb => cb.checked = false);
+                    await loadRegistrations();
+                    await loadStatus();
+
+                    setTimeout(() => {
+                        document.getElementById('courseAlert').className = 'alert';
+                    }, 8000);
+                } else {
+                    showAlert('courseAlert', 'Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('courseAlert', 'Network error. Please try again.', 'error');
+            }
+        }
+
+        async function loadRegistrations() {
+            try {
+                const response = await fetch('/api/registrations');
+                const data = await response.json();
+
+                if (data.success) {
+                    registrations = data.data;
+                    displayRegistrations();
+                    document.getElementById('regCount').innerHTML = `(${registrations.length})`;
+                }
+            } catch (error) {
+                console.error('Error loading registrations:', error);
+            }
+        }
+
+        function displayRegistrations() {
+            const container = document.getElementById('registrationsList');
+
+            if (registrations.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999;">No registrations yet</p>';
+                return;
+            }
+
+            const recentRegs = [...registrations].reverse().slice(0, 10);
+
+            container.innerHTML = recentRegs.map(r => `
+                <div class="registration-item">
+                    <div class="student-name">${escapeHtml(r.studentName)}</div>
+                    <div class="student-id">🎓 Registration ID: ${r.registrationId}</div>
+                    <div class="course-list">
+                        📚 Courses: ${r.courses.map(c => `<span class="course-badge">${c.code}</span>`).join(' ')}
+                    </div>
+                    <div class="registration-date">
+                        🎯 Total Credits: ${r.totalCredits} | 💰 Fees: $${r.totalCredits * 150}
+                    </div>
+                    <div class="registration-date">📅 Registered: ${new Date(r.registrationDate).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadStatus() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+
+                if (data.status === 'healthy') {
+                    document.getElementById('statusBar').innerHTML = `
+                        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px;">
+                            <div>
+                                <span class="status-indicator"></span>
+                                <strong>System Status:</strong> ${data.status.toUpperCase()}
+                            </div>
+                            <div>
+                                <strong>📊 Total Students:</strong> ${data.stats.totalStudents}
+                            </div>
+                            <div>
+                                <strong>📋 Total Registrations:</strong> ${data.stats.totalRegistrations}
+                            </div>
+                            <div>
+                                <strong>☁️ Platform:</strong> ${data.platform}
+                            </div>
+                            <div>
+                                <strong>🕐 Last Updated:</strong> ${new Date(data.timestamp).toLocaleTimeString()}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('statusBar').innerHTML = `
+                    <div style="color: #f8d7da;">
+                        ⚠️ Status check failed. Please refresh the page.
+                    </div>
+                `;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showAlert(elementId, message, type) {
+            const alertDiv = document.getElementById(elementId);
+            alertDiv.innerHTML = message;
+            alertDiv.className = `alert ${type}`;
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (alertDiv.className === `alert ${type}`) {
+                        alertDiv.className = 'alert';
+                    }
+                }, 5000);
+            }
+        }
+
+        setInterval(() => {
+            loadStudents();
+            loadRegistrations();
+            loadStatus();
+        }, 10000);
+
+        loadData();
+    </script>
+</body>
+</html>
