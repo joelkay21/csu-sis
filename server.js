@@ -58,7 +58,7 @@ let users = [];
 let nextStudentId = 1;
 let nextRegId = 1;
 
-// Initialize database tables
+// Initialize and migrate database
 async function initDatabase() {
     if (!pool) return;
     
@@ -85,7 +85,7 @@ async function initDatabase() {
             )
         `);
         
-        // Create registrations table
+        // Create registrations table with all required columns
         await pool.query(`
             CREATE TABLE IF NOT EXISTS registrations (
                 id SERIAL PRIMARY KEY,
@@ -112,7 +112,39 @@ async function initDatabase() {
             )
         `);
         
-        // Insert default courses
+        // ADD MISSING COLUMNS IF THEY DON'T EXIST (Migration)
+        try {
+            // Check and add student_name column
+            await pool.query(`
+                ALTER TABLE registrations ADD COLUMN IF NOT EXISTS student_name VARCHAR(200)
+            `);
+            
+            // Check and add student_id column
+            await pool.query(`
+                ALTER TABLE registrations ADD COLUMN IF NOT EXISTS student_id INTEGER
+            `);
+            
+            // Check and add courses column
+            await pool.query(`
+                ALTER TABLE registrations ADD COLUMN IF NOT EXISTS courses TEXT[]
+            `);
+            
+            // Check and add total_credits column
+            await pool.query(`
+                ALTER TABLE registrations ADD COLUMN IF NOT EXISTS total_credits INTEGER
+            `);
+            
+            // Check and add fee_amount column
+            await pool.query(`
+                ALTER TABLE registrations ADD COLUMN IF NOT EXISTS fee_amount DECIMAL(10,2)
+            `);
+            
+            console.log('Database schema migration completed - all columns verified');
+        } catch (migrateErr) {
+            console.log('Migration note:', migrateErr.message);
+        }
+        
+        // Insert default courses if not exist
         for (const course of defaultCourses) {
             await pool.query(
                 'INSERT INTO courses (code, name, credits) VALUES ($1, $2, $3) ON CONFLICT (code) DO NOTHING',
@@ -246,7 +278,9 @@ app.post('/api/registrations', async (req, res) => {
         
         if (dbConnected && pool) {
             const result = await pool.query(
-                'INSERT INTO registrations (registration_id, student_id, student_name, courses, total_credits, fee_amount) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                `INSERT INTO registrations (registration_id, student_id, student_name, courses, total_credits, fee_amount) 
+                 VALUES ($1, $2, $3, $4, $5, $6) 
+                 RETURNING *`,
                 [registrationId, studentId, studentName, courseCodes, totalCredits, feeAmount]
             );
             registration = result.rows[0];
