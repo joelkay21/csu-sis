@@ -14,10 +14,7 @@
             padding: 20px;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1200px; margin: 0 auto; }
         
         .header {
             background: white;
@@ -82,10 +79,7 @@
             margin-top: 10px;
         }
         
-        button:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
-        }
+        button:hover { transform: translateY(-2px); }
         
         .course-checkbox {
             margin: 10px 0;
@@ -175,12 +169,33 @@
             color: white;
         }
         
-        .tab-content {
-            display: none;
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .integration-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
         }
         
-        .tab-content.active {
-            display: block;
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-dot.active {
+            background: #4caf50;
         }
     </style>
 </head>
@@ -191,8 +206,27 @@
             <p>Student Information System - PaaS Implementation</p>
             <div>
                 <span class="badge">✓ Render.com PaaS</span>
-                <span class="badge">✓ PostgreSQL Database</span>
-                <span class="badge">✓ JWT Authentication</span>
+                <span class="badge">✓ API Integration Layer</span>
+                <span class="badge">✓ Notification Service</span>
+            </div>
+        </div>
+
+        <!-- Integration Status Cards -->
+        <div class="integration-grid">
+            <div class="integration-card">
+                <h4>📚 LMS Integration</h4>
+                <span class="status-dot active"></span> Simulated<br>
+                <small>Auto-enrollment</small>
+            </div>
+            <div class="integration-card">
+                <h4>💰 Finance Integration</h4>
+                <span class="status-dot active"></span> Simulated<br>
+                <small>Invoice generation</small>
+            </div>
+            <div class="integration-card">
+                <h4>📧 Notification Service</h4>
+                <span class="status-dot active"></span> Active<br>
+                <small>Email simulation</small>
             </div>
         </div>
 
@@ -227,7 +261,6 @@
         </div>
 
         <div class="grid">
-            <!-- Student Registration -->
             <div class="card">
                 <h3>📝 Register New Student</h3>
                 <input type="text" id="studentName" placeholder="Full Name">
@@ -236,7 +269,6 @@
                 <div id="studentAlert" class="alert"></div>
             </div>
 
-            <!-- Course Registration -->
             <div class="card">
                 <h3>📚 Course Registration</h3>
                 <select id="studentSelect">
@@ -270,13 +302,14 @@
     <script>
         let authToken = localStorage.getItem('token');
         let students = [];
-        let courses = [];
         
-        // Tab switching
         function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
+            document.querySelectorAll('.tab-content').forEach(function(t) {
+                t.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(function(b) {
+                b.classList.remove('active');
+            });
             if (tab === 'login') {
                 document.getElementById('loginTab').classList.add('active');
                 document.querySelector('.tab-btn:first-child').classList.add('active');
@@ -286,7 +319,6 @@
             }
         }
         
-        // Login function
         async function login() {
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
@@ -300,7 +332,7 @@
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ username: username, password: password })
                 });
                 
                 const data = await response.json();
@@ -308,21 +340,17 @@
                 if (response.ok) {
                     authToken = data.token;
                     localStorage.setItem('token', authToken);
-                    showAlert('loginResult', '✓ Login successful!', 'success');
-                    document.getElementById('authStatus').innerHTML = `Logged in as: ${data.user.username} (${data.user.role})`;
+                    showAlert('loginResult', 'Login successful! Welcome ' + data.user.username, 'success');
+                    document.getElementById('authStatus').innerHTML = 'Logged in as: ' + data.user.username + ' (' + data.user.role + ')';
                     loadAllData();
-                    setTimeout(() => {
-                        document.getElementById('loginResult').className = 'alert';
-                    }, 3000);
                 } else {
-                    showAlert('loginResult', '✗ ' + (data.error || 'Login failed'), 'error');
+                    showAlert('loginResult', data.error || 'Login failed', 'error');
                 }
             } catch (error) {
-                showAlert('loginResult', '✗ Network error. Check if server is running.', 'error');
+                showAlert('loginResult', 'Network error: ' + error.message, 'error');
             }
         }
         
-        // Register function
         async function register() {
             const username = document.getElementById('regUsername').value;
             const email = document.getElementById('regEmail').value;
@@ -348,29 +376,25 @@
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password, role })
+                    body: JSON.stringify({ username: username, email: email, password: password, role: role })
                 });
                 
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showAlert('registerResult', '✓ Account created! You can now login.', 'success');
+                    showAlert('registerResult', 'Account created! You can now login.', 'success');
                     document.getElementById('regUsername').value = '';
                     document.getElementById('regEmail').value = '';
                     document.getElementById('regPassword').value = '';
                     switchTab('login');
-                    setTimeout(() => {
-                        document.getElementById('registerResult').className = 'alert';
-                    }, 3000);
                 } else {
-                    showAlert('registerResult', '✗ ' + (data.error || 'Registration failed'), 'error');
+                    showAlert('registerResult', data.error || 'Registration failed', 'error');
                 }
             } catch (error) {
-                showAlert('registerResult', '✗ Network error. Check if server is running.', 'error');
+                showAlert('registerResult', 'Network error: ' + error.message, 'error');
             }
         }
         
-        // Register student
         async function registerStudent() {
             const name = document.getElementById('studentName').value.trim();
             const email = document.getElementById('studentEmail').value.trim();
@@ -384,28 +408,24 @@
                 const response = await fetch('/api/students', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email })
+                    body: JSON.stringify({ name: name, email: email })
                 });
                 
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showAlert('studentAlert', `✓ ${name} registered successfully! Student ID: ${data.student_id}`, 'success');
+                    showAlert('studentAlert', name + ' registered successfully! Student ID: ' + data.student_id, 'success');
                     document.getElementById('studentName').value = '';
                     document.getElementById('studentEmail').value = '';
                     await loadStudents();
-                    setTimeout(() => {
-                        document.getElementById('studentAlert').className = 'alert';
-                    }, 3000);
                 } else {
-                    showAlert('studentAlert', '✗ ' + (data.error || 'Registration failed'), 'error');
+                    showAlert('studentAlert', data.error || 'Registration failed', 'error');
                 }
             } catch (error) {
-                showAlert('studentAlert', '✗ Network error', 'error');
+                showAlert('studentAlert', 'Network error', 'error');
             }
         }
         
-        // Register courses
         async function registerCourses() {
             const studentId = document.getElementById('studentSelect').value;
             if (!studentId) {
@@ -413,15 +433,18 @@
                 return;
             }
             
-            const selectedCourses = Array.from(document.querySelectorAll('#courses input:checked'))
-                .map(cb => cb.value);
+            const selectedCourses = [];
+            const checkboxes = document.querySelectorAll('#courses input:checked');
+            for (let i = 0; i < checkboxes.length; i++) {
+                selectedCourses.push(checkboxes[i].value);
+            }
             
             if (selectedCourses.length === 0) {
                 showAlert('courseAlert', 'Please select at least one course', 'error');
                 return;
             }
             
-            const student = students.find(s => s.id == studentId);
+            const student = students.find(function(s) { return s.id == studentId; });
             if (!student) {
                 showAlert('courseAlert', 'Student not found', 'error');
                 return;
@@ -443,35 +466,31 @@
                 
                 if (response.ok && data.success) {
                     const integrationDiv = document.getElementById('integrationResponse');
-                    integrationDiv.innerHTML = `
-                        <strong>✅ Registration Complete!</strong><br>
-                        📚 LMS Integration: ${data.integrations?.lms?.lmsId || 'N/A'}<br>
-                        💰 Finance Integration: ${data.integrations?.finance?.invoiceId || 'N/A'}<br>
-                        🎓 Total Credits: ${data.registration?.total_credits || 'N/A'}<br>
-                        💵 Total Fees: $${data.registration?.fee_amount || 'N/A'}
-                    `;
+                    integrationDiv.innerHTML = '<strong>✅ Registration Complete!</strong><br>' +
+                        '📚 LMS Integration: ' + (data.integrations?.lms?.lmsId || 'N/A') + '<br>' +
+                        '💰 Finance Integration: ' + (data.integrations?.finance?.invoiceId || 'N/A') + '<br>' +
+                        '🎓 Total Credits: ' + (data.registration?.total_credits || 'N/A') + '<br>' +
+                        '💵 Total Fees: $' + (data.registration?.fee_amount || 'N/A');
                     integrationDiv.style.display = 'block';
                     
-                    showAlert('courseAlert', `✓ Registration completed for ${student.name}!`, 'success');
+                    showAlert('courseAlert', 'Registration completed for ' + student.name + '!', 'success');
                     
-                    document.querySelectorAll('#courses input').forEach(cb => cb.checked = false);
+                    for (let i = 0; i < checkboxes.length; i++) {
+                        checkboxes[i].checked = false;
+                    }
                     await loadRegistrations();
                     
-                    setTimeout(() => {
+                    setTimeout(function() {
                         integrationDiv.style.display = 'none';
                     }, 5000);
-                    setTimeout(() => {
-                        document.getElementById('courseAlert').className = 'alert';
-                    }, 3000);
                 } else {
-                    showAlert('courseAlert', '✗ ' + (data.error || 'Registration failed'), 'error');
+                    showAlert('courseAlert', data.error || 'Registration failed', 'error');
                 }
             } catch (error) {
-                showAlert('courseAlert', '✗ Network error', 'error');
+                showAlert('courseAlert', 'Network error: ' + error.message, 'error');
             }
         }
         
-        // Load students
         async function loadStudents() {
             try {
                 const response = await fetch('/api/students');
@@ -481,49 +500,47 @@
                 if (!students || students.length === 0) {
                     container.innerHTML = '<p>No students registered yet</p>';
                 } else {
-                    container.innerHTML = students.map(s => `
-                        <div class="student-item">
-                            <strong>${escapeHtml(s.name)}</strong><br>
-                            📧 ${escapeHtml(s.email)}<br>
-                            🎓 ID: ${s.student_id}
-                        </div>
-                    `).join('');
+                    let html = '';
+                    for (let i = 0; i < students.length; i++) {
+                        html += '<div class="student-item">' +
+                            '<strong>' + escapeHtml(students[i].name) + '</strong><br>' +
+                            '📧 ' + escapeHtml(students[i].email) + '<br>' +
+                            '🎓 ID: ' + students[i].student_id +
+                            '</div>';
+                    }
+                    container.innerHTML = html;
                 }
                 
                 const select = document.getElementById('studentSelect');
                 select.innerHTML = '<option value="">Select Student</option>';
-                students.forEach(s => {
-                    select.innerHTML += `<option value="${s.id}">${escapeHtml(s.name)} (${s.student_id})</option>`;
-                });
+                for (let i = 0; i < students.length; i++) {
+                    select.innerHTML += '<option value="' + students[i].id + '">' + escapeHtml(students[i].name) + ' (' + students[i].student_id + ')</option>';
+                }
             } catch (error) {
-                document.getElementById('studentsList').innerHTML = '<p>Error loading students. Make sure server is running.</p>';
+                document.getElementById('studentsList').innerHTML = '<p>Error loading students</p>';
                 console.error('Error:', error);
             }
         }
         
-        // Load courses
         async function loadCourses() {
             try {
                 const response = await fetch('/api/courses');
-                courses = await response.json();
+                const courses = await response.json();
                 const container = document.getElementById('courses');
                 
-                if (!courses || courses.length === 0) {
-                    container.innerHTML = '<p>No courses available</p>';
-                } else {
-                    container.innerHTML = courses.map(c => `
-                        <div class="course-checkbox">
-                            <input type="checkbox" value="${c.code}"> ${c.code} - ${c.name} (${c.credits} credits)
-                        </div>
-                    `).join('');
+                let html = '';
+                for (let i = 0; i < courses.length; i++) {
+                    html += '<div class="course-checkbox">' +
+                        '<input type="checkbox" value="' + courses[i].code + '"> ' + courses[i].code + ' - ' + courses[i].name + ' (' + courses[i].credits + ' credits)' +
+                        '</div>';
                 }
+                container.innerHTML = html;
             } catch (error) {
                 console.error('Error loading courses:', error);
                 document.getElementById('courses').innerHTML = '<p>Error loading courses</p>';
             }
         }
         
-        // Load registrations
         async function loadRegistrations() {
             try {
                 const response = await fetch('/api/registrations');
@@ -533,48 +550,48 @@
                 if (!registrations || registrations.length === 0) {
                     container.innerHTML = '<p>No registrations yet</p>';
                 } else {
-                    container.innerHTML = registrations.slice().reverse().slice(0, 10).map(r => `
-                        <div class="registration-item">
-                            <strong>${escapeHtml(r.student_name || 'Student')}</strong><br>
-                            📚 Courses: ${r.courses ? r.courses.join(', ') : 'N/A'}<br>
-                            🎯 Credits: ${r.total_credits || 0} | 💰 Fees: $${r.fee_amount || 0}
-                        </div>
-                    `).join('');
+                    let html = '';
+                    const reversed = registrations.slice().reverse();
+                    const limit = reversed.length < 10 ? reversed.length : 10;
+                    for (let i = 0; i < limit; i++) {
+                        html += '<div class="registration-item">' +
+                            '<strong>' + escapeHtml(reversed[i].student_name || 'Student') + '</strong><br>' +
+                            '📚 Courses: ' + (reversed[i].courses ? reversed[i].courses.join(', ') : 'N/A') + '<br>' +
+                            '🎯 Credits: ' + (reversed[i].total_credits || 0) + ' | 💰 Fees: $' + (reversed[i].fee_amount || 0) +
+                            '</div>';
+                    }
+                    container.innerHTML = html;
                 }
             } catch (error) {
                 console.error('Error loading registrations:', error);
             }
         }
         
-        // Load status
         async function loadStatus() {
             try {
                 const response = await fetch('/api/health');
                 const data = await response.json();
-                document.getElementById('statusBar').innerHTML = `
-                    ✓ System: ${data.status} | 
-                    ✓ Database: ${data.components?.database || 'Connected'} | 
-                    ✓ Platform: ${data.platform} |
-                    🕐 ${new Date(data.timestamp).toLocaleTimeString()}
-                `;
+                document.getElementById('statusBar').innerHTML = '✓ System: ' + data.status + ' | ✓ Platform: ' + data.platform + ' | 🕐 ' + new Date(data.timestamp).toLocaleTimeString();
             } catch (error) {
                 document.getElementById('statusBar').innerHTML = '⚠️ Status check failed. Server may be starting.';
             }
         }
         
-        // Helper functions
         function escapeHtml(text) {
             if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            return text.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
         }
         
         function showAlert(elementId, message, type) {
             const alertDiv = document.getElementById(elementId);
             alertDiv.innerHTML = message;
-            alertDiv.className = `alert ${type}`;
-            setTimeout(() => {
+            alertDiv.className = 'alert ' + type;
+            setTimeout(function() {
                 alertDiv.className = 'alert';
             }, 5000);
         }
@@ -586,13 +603,10 @@
             await loadStatus();
         }
         
-        // Initial load
         if (authToken) {
             document.getElementById('authStatus').innerHTML = '✓ Authenticated';
         }
         loadAllData();
-        
-        // Auto-refresh every 10 seconds
         setInterval(loadStatus, 10000);
     </script>
 </body>

@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// In-memory storage (for testing - will work without database)
+// In-memory storage
 let students = [];
 let registrations = [];
 let users = [];
@@ -29,7 +29,7 @@ const courses = [
 
 // ============= API ROUTES =============
 
-// Health check - test if server is working
+// Health check
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'healthy',
@@ -76,7 +76,7 @@ app.get('/api/registrations', (req, res) => {
     res.json(registrations);
 });
 
-// Register student for courses (with simulated integrations)
+// Register student for courses
 app.post('/api/registrations', (req, res) => {
     const { studentId, studentName, studentEmail, courses: courseCodes } = req.body;
     
@@ -123,16 +123,16 @@ app.post('/api/registrations', (req, res) => {
         status: 'pending'
     };
     
-    // Log to console (will show in Render logs)
+    // Log to console
     console.log('=========================================');
     console.log('📚 LMS INTEGRATION:');
-    console.log(   Enrolled  in: );
-    console.log(   LMS ID: );
+    console.log('   Enrolled ' + studentName + ' in: ' + courseCodes.join(', '));
+    console.log('   LMS ID: ' + lmsEnrollment.lmsId);
     console.log('💰 FINANCE INTEGRATION:');
-    console.log(   Created invoice for C:\Users\jkatunansa\Desktop\HerokuSIS{feeAmount});
-    console.log(   Invoice ID: );
+    console.log('   Created invoice for $' + feeAmount);
+    console.log('   Invoice ID: ' + financeInvoice.invoiceId);
     console.log('📧 NOTIFICATION:');
-    console.log(   Sending confirmation email to );
+    console.log('   Sending confirmation email to ' + studentEmail);
     console.log('=========================================');
     
     res.json({
@@ -167,20 +167,19 @@ app.post('/api/auth/register', (req, res) => {
         return res.status(400).json({ error: 'Username or email already exists' });
     }
     
-    // Simple hash simulation (in production use bcrypt)
+    // Simple hash simulation
     const user = {
         id: users.length + 1,
         username: username,
         email: email,
-        password: password, // In production, this should be hashed
+        password: password,
         role: role || 'student',
         created_at: new Date().toISOString()
     };
     
     users.push(user);
     
-    // Create a simple token (in production use JWT)
-    const token = Buffer.from(${username}:).toString('base64');
+    const token = Buffer.from(username + ':' + Date.now()).toString('base64');
     
     res.json({
         token: token,
@@ -203,7 +202,7 @@ app.post('/api/auth/login', (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    const token = Buffer.from(${username}:).toString('base64');
+    const token = Buffer.from(username + ':' + Date.now()).toString('base64');
     
     res.json({
         token: token,
@@ -226,17 +225,19 @@ app.listen(PORT, () => {
     console.log('=========================================');
     console.log('🏫 Central State University SIS');
     console.log('=========================================');
-    console.log(✓ Server running on port );
-    console.log(✓ Platform: Render.com PaaS);
-    console.log(✓ API URL: http://localhost:/api/health);
-    console.log(✓ Students API: GET /api/students);
-    console.log(✓ Courses API: GET /api/courses);
-    console.log(✓ Registrations API: GET /api/registrations);
-    console.log(✓ Auth API: POST /api/auth/register, POST /api/auth/login);
+    console.log('✓ Server running on port ' + PORT);
+    console.log('✓ Platform: Render.com PaaS');
+    console.log('✓ API URL: http://localhost:' + PORT + '/api/health');
+    console.log('✓ Students API: GET /api/students');
+    console.log('✓ Courses API: GET /api/courses');
+    console.log('✓ Registrations API: GET /api/registrations');
+    console.log('✓ Auth API: POST /api/auth/register, POST /api/auth/login');
     console.log('=========================================');
-    console.log('\n📚 Simulated Integrations Ready:');
+    console.log('');
+    console.log('📚 Simulated Integrations Ready:');
     console.log('   - LMS Service (auto-enrollment)');
     console.log('   - Finance Service (invoice generation)');
     console.log('   - Notification Service (email simulation)');
-    console.log('=========================================\n');
+    console.log('=========================================');
+    console.log('');
 });
