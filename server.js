@@ -112,7 +112,7 @@ async function initDatabase() {
             )
         `);
         
-        // ADD MISSING COLUMNS IF THEY DON'T EXIST (Migration)
+        // ADD MISSING COLUMNS FOR REGISTRATIONS TABLE (Migration)
         try {
             await pool.query(`
                 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS student_name VARCHAR(200)
@@ -129,9 +129,20 @@ async function initDatabase() {
             await pool.query(`
                 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS fee_amount DECIMAL(10,2)
             `);
-            console.log('Database schema migration completed - all columns verified');
+            console.log('Registrations table migration completed');
         } catch (migrateErr) {
-            console.log('Migration note:', migrateErr.message);
+            console.log('Registrations migration note:', migrateErr.message);
+        }
+        
+        // ADD MISSING COLUMNS FOR USERS TABLE (Migration)
+        try {
+            // Add password column if missing (most critical fix)
+            await pool.query(`
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255)
+            `);
+            console.log('Users table migration completed - password column verified');
+        } catch (userErr) {
+            console.log('Users migration note:', userErr.message);
         }
         
         // Insert default courses if not exist
@@ -147,7 +158,6 @@ async function initDatabase() {
         console.error('Database init error:', err.message);
     }
 }
-
 // ============= API ROUTES =============
 
 app.get('/api/health', async (req, res) => {
