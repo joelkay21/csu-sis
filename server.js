@@ -100,7 +100,7 @@ async function initDatabase() {
             )
         `);
         
-        // Create users table
+        // Create users table with password column (not password_hash)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -136,7 +136,7 @@ async function initDatabase() {
         
         // ADD MISSING COLUMNS FOR USERS TABLE (Migration)
         try {
-            // Add password column if missing (most critical fix)
+            // Add password column if missing
             await pool.query(`
                 ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255)
             `);
@@ -158,6 +158,7 @@ async function initDatabase() {
         console.error('Database init error:', err.message);
     }
 }
+
 // ============= API ROUTES =============
 
 app.get('/api/health', async (req, res) => {
@@ -176,7 +177,9 @@ app.get('/api/health', async (req, res) => {
         timestamp: new Date().toISOString(),
         platform: 'Render.com PaaS',
         database: dbStatus,
-        storage: dbConnected ? 'postgresql' : 'in-memory'
+        storage: dbConnected ? 'postgresql' : 'in-memory',
+        currency: 'ZMW',
+        feePerCredit: 1500
     });
 });
 
@@ -352,7 +355,8 @@ app.post('/api/registrations', async (req, res) => {
     }
 });
 
-// Auth routes
+// ============= AUTH ROUTES - FIXED =============
+
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, email, password, role } = req.body;
@@ -368,6 +372,7 @@ app.post('/api/auth/register', async (req, res) => {
             if (existing.rows.length > 0) {
                 return res.status(400).json({ error: 'Username or email exists' });
             }
+            // FIXED: Using 'password' column (not password_hash)
             const result = await pool.query(
                 'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
                 [username, email, password, role || 'student']
@@ -396,6 +401,7 @@ app.post('/api/auth/login', async (req, res) => {
         let user;
         
         if (dbConnected && pool) {
+            // FIXED: Using 'password' column
             const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
             if (result.rows.length === 0) {
                 return res.status(401).json({ error: 'Invalid credentials' });
