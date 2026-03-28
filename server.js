@@ -63,7 +63,8 @@ async function initDatabase() {
     if (!pool) return;
     
     try {
-        await pool.query(\
+        // Create students table
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS students (
                 id SERIAL PRIMARY KEY,
                 student_id VARCHAR(20) UNIQUE NOT NULL,
@@ -73,17 +74,19 @@ async function initDatabase() {
                 registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 status VARCHAR(20) DEFAULT 'active'
             )
-        \);
+        `);
         
-        await pool.query(\
+        // Create courses table
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS courses (
                 code VARCHAR(10) PRIMARY KEY,
                 name VARCHAR(200) NOT NULL,
                 credits INTEGER NOT NULL
             )
-        \);
+        `);
         
-        await pool.query(\
+        // Create registrations table
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS registrations (
                 id SERIAL PRIMARY KEY,
                 registration_id VARCHAR(50) UNIQUE NOT NULL,
@@ -95,9 +98,10 @@ async function initDatabase() {
                 registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 status VARCHAR(20) DEFAULT 'confirmed'
             )
-        \);
+        `);
         
-        await pool.query(\
+        // Create users table
+        await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(100) UNIQUE NOT NULL,
@@ -106,11 +110,12 @@ async function initDatabase() {
                 role VARCHAR(50) DEFAULT 'student',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        \);
+        `);
         
+        // Insert default courses
         for (const course of defaultCourses) {
             await pool.query(
-                'INSERT INTO courses (code, name, credits) VALUES (, , ) ON CONFLICT (code) DO NOTHING',
+                'INSERT INTO courses (code, name, credits) VALUES ($1, $2, $3) ON CONFLICT (code) DO NOTHING',
                 [course.code, course.name, course.credits]
             );
         }
@@ -171,7 +176,7 @@ app.post('/api/students', async (req, res) => {
             const studentId = 'STU' + String(count + 1).padStart(4, '0');
             
             const result = await pool.query(
-                'INSERT INTO students (student_id, name, email, phone) VALUES (, , , ) RETURNING *',
+                'INSERT INTO students (student_id, name, email, phone) VALUES ($1, $2, $3, $4) RETURNING *',
                 [studentId, name, email, phone || '']
             );
             res.json(result.rows[0]);
@@ -241,7 +246,7 @@ app.post('/api/registrations', async (req, res) => {
         
         if (dbConnected && pool) {
             const result = await pool.query(
-                'INSERT INTO registrations (registration_id, student_id, student_name, courses, total_credits, fee_amount) VALUES (, , , , , ) RETURNING *',
+                'INSERT INTO registrations (registration_id, student_id, student_name, courses, total_credits, fee_amount) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
                 [registrationId, studentId, studentName, courseCodes, totalCredits, feeAmount]
             );
             registration = result.rows[0];
@@ -318,12 +323,12 @@ app.post('/api/auth/register', async (req, res) => {
         let user;
         
         if (dbConnected && pool) {
-            const existing = await pool.query('SELECT * FROM users WHERE username =  OR email = ', [username, email]);
+            const existing = await pool.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
             if (existing.rows.length > 0) {
                 return res.status(400).json({ error: 'Username or email exists' });
             }
             const result = await pool.query(
-                'INSERT INTO users (username, email, password, role) VALUES (, , , ) RETURNING id, username, email, role',
+                'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
                 [username, email, password, role || 'student']
             );
             user = result.rows[0];
@@ -350,7 +355,7 @@ app.post('/api/auth/login', async (req, res) => {
         let user;
         
         if (dbConnected && pool) {
-            const result = await pool.query('SELECT * FROM users WHERE username =  AND password = ', [username, password]);
+            const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
             if (result.rows.length === 0) {
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
