@@ -100,13 +100,13 @@ async function initDatabase() {
             )
         `);
         
-        // Create users table with password column (not password_hash)
+        // Create users table with password_hash column (matching your database)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(100) UNIQUE NOT NULL,
                 email VARCHAR(255) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
                 role VARCHAR(50) DEFAULT 'student',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -134,13 +134,12 @@ async function initDatabase() {
             console.log('Registrations migration note:', migrateErr.message);
         }
         
-        // ADD MISSING COLUMNS FOR USERS TABLE (Migration)
+        // ADD MISSING COLUMNS FOR USERS TABLE (Migration) - ensure password_hash exists
         try {
-            // Add password column if missing
             await pool.query(`
-                ALTER TABLE users ADD COLUMN IF NOT EXISTS password VARCHAR(255)
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)
             `);
-            console.log('Users table migration completed - password column verified');
+            console.log('Users table migration completed - password_hash column verified');
         } catch (userErr) {
             console.log('Users migration note:', userErr.message);
         }
@@ -355,7 +354,7 @@ app.post('/api/registrations', async (req, res) => {
     }
 });
 
-// ============= AUTH ROUTES - FIXED =============
+// ============= AUTH ROUTES - USING PASSWORD_HASH =============
 
 app.post('/api/auth/register', async (req, res) => {
     try {
@@ -372,9 +371,9 @@ app.post('/api/auth/register', async (req, res) => {
             if (existing.rows.length > 0) {
                 return res.status(400).json({ error: 'Username or email exists' });
             }
-            // FIXED: Using 'password' column (not password_hash)
+            // Using password_hash column to match your database
             const result = await pool.query(
-                'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
+                'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
                 [username, email, password, role || 'student']
             );
             user = result.rows[0];
@@ -401,8 +400,8 @@ app.post('/api/auth/login', async (req, res) => {
         let user;
         
         if (dbConnected && pool) {
-            // FIXED: Using 'password' column
-            const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+            // Using password_hash column to match your database
+            const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password_hash = $2', [username, password]);
             if (result.rows.length === 0) {
                 return res.status(401).json({ error: 'Invalid credentials' });
             }
