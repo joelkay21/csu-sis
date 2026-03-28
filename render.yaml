@@ -1,0 +1,15 @@
+﻿services:
+  - type: web
+    name: central-state-sis
+    runtime: node
+    repo: https://github.com/YOUR_USERNAME/csu-sis.git  # You'll update this after creating GitHub repo
+    plan: free
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: NODE_ENV
+        value: production
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true

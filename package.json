@@ -8,7 +8,8 @@
     "dev": "nodemon server.js"
   },
   "engines": {
-    "node": "18.x"
+    "node": "18.x",
+    "npm": "9.x"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -17,7 +18,7 @@
   "devDependencies": {
     "nodemon": "^2.0.22"
   },
-  "keywords": ["university", "sis", "education"],
+  "keywords": ["university", "sis", "education", "cloud-computing"],
   "author": "Central State University",
   "license": "MIT"
 }
