@@ -197,6 +197,16 @@
         .status-dot.active {
             background: #4caf50;
         }
+        
+        .currency-note {
+            background: #fff3cd;
+            color: #856404;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -208,6 +218,10 @@
                 <span class="badge">✓ Render.com PaaS</span>
                 <span class="badge">✓ API Integration Layer</span>
                 <span class="badge">✓ Notification Service</span>
+                <span class="badge">✓ ZMW Currency</span>
+            </div>
+            <div class="currency-note">
+                💰 All fees shown in Zambian Kwacha (ZMW) - K1500 per credit unit
             </div>
         </div>
 
@@ -221,7 +235,7 @@
             <div class="integration-card">
                 <h4>💰 Finance Integration</h4>
                 <span class="status-dot active"></span> Simulated<br>
-                <small>Invoice generation</small>
+                <small>Invoice generation (ZMW)</small>
             </div>
             <div class="integration-card">
                 <h4>📧 Notification Service</h4>
@@ -296,6 +310,7 @@
         <div class="footer">
             <p>Central State University | Complete PaaS Implementation</p>
             <p>Integrated with: LMS (Simulated) | Finance (Simulated) | Notification Service</p>
+            <p><small>Fees shown in Zambian Kwacha (ZMW) - K1500 per credit unit</small></p>
         </div>
     </div>
 
@@ -470,7 +485,7 @@
                         '📚 LMS Integration: ' + (data.integrations?.lms?.lmsId || 'N/A') + '<br>' +
                         '💰 Finance Integration: ' + (data.integrations?.finance?.invoiceId || 'N/A') + '<br>' +
                         '🎓 Total Credits: ' + (data.registration?.total_credits || 'N/A') + '<br>' +
-                        '💵 Total Fees: $' + (data.registration?.fee_amount || 'N/A');
+                        '💵 Total Fees: K' + (data.registration?.fee_amount || 'N/A');
                     integrationDiv.style.display = 'block';
                     
                     showAlert('courseAlert', 'Registration completed for ' + student.name + '!', 'success');
@@ -557,7 +572,7 @@
                         html += '<div class="registration-item">' +
                             '<strong>' + escapeHtml(reversed[i].student_name || 'Student') + '</strong><br>' +
                             '📚 Courses: ' + (reversed[i].courses ? reversed[i].courses.join(', ') : 'N/A') + '<br>' +
-                            '🎯 Credits: ' + (reversed[i].total_credits || 0) + ' | 💰 Fees: $' + (reversed[i].fee_amount || 0) +
+                            '🎯 Credits: ' + (reversed[i].total_credits || 0) + ' | 💰 Fees: K' + (reversed[i].fee_amount || 0) +
                             '</div>';
                     }
                     container.innerHTML = html;
@@ -571,7 +586,7 @@
             try {
                 const response = await fetch('/api/health');
                 const data = await response.json();
-                document.getElementById('statusBar').innerHTML = '✓ System: ' + data.status + ' | ✓ Platform: ' + data.platform + ' | 🕐 ' + new Date(data.timestamp).toLocaleTimeString();
+                document.getElementById('statusBar').innerHTML = '✓ System: ' + data.status + ' | ✓ Platform: ' + data.platform + ' | ✓ Currency: ZMW | 🕐 ' + new Date(data.timestamp).toLocaleTimeString();
             } catch (error) {
                 document.getElementById('statusBar').innerHTML = '⚠️ Status check failed. Server may be starting.';
             }

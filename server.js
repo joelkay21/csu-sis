@@ -114,31 +114,21 @@ async function initDatabase() {
         
         // ADD MISSING COLUMNS IF THEY DON'T EXIST (Migration)
         try {
-            // Check and add student_name column
             await pool.query(`
                 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS student_name VARCHAR(200)
             `);
-            
-            // Check and add student_id column
             await pool.query(`
                 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS student_id INTEGER
             `);
-            
-            // Check and add courses column
             await pool.query(`
                 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS courses TEXT[]
             `);
-            
-            // Check and add total_credits column
             await pool.query(`
                 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS total_credits INTEGER
             `);
-            
-            // Check and add fee_amount column
             await pool.query(`
                 ALTER TABLE registrations ADD COLUMN IF NOT EXISTS fee_amount DECIMAL(10,2)
             `);
-            
             console.log('Database schema migration completed - all columns verified');
         } catch (migrateErr) {
             console.log('Migration note:', migrateErr.message);
@@ -271,7 +261,7 @@ app.post('/api/registrations', async (req, res) => {
         
         const selectedCourses = defaultCourses.filter(c => courseCodes.includes(c.code));
         const totalCredits = selectedCourses.reduce((sum, c) => sum + c.credits, 0);
-        const feeAmount = totalCredits * 150;
+        const feeAmount = totalCredits * 1500; // Zambian Kwacha - K1500 per credit
         const registrationId = 'REG' + Date.now();
         
         let registration;
@@ -305,7 +295,8 @@ app.post('/api/registrations', async (req, res) => {
             studentId: studentId,
             studentName: studentName,
             courses: courseCodes,
-            status: 'enrolled'
+            status: 'enrolled',
+            currency: 'ZMW'
         };
         
         const financeInvoice = {
@@ -313,6 +304,7 @@ app.post('/api/registrations', async (req, res) => {
             studentId: studentId,
             studentName: studentName,
             amount: feeAmount,
+            currency: 'ZMW',
             dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             status: 'pending'
         };
@@ -320,7 +312,7 @@ app.post('/api/registrations', async (req, res) => {
         console.log('');
         console.log('========== INTEGRATIONS ==========');
         console.log('LMS Integration: Enrolled ' + studentName + ' in ' + courseCodes.join(', '));
-        console.log('Finance Integration: Created invoice for $' + feeAmount);
+        console.log('Finance Integration: Created invoice for K' + feeAmount);
         console.log('Notification: Confirmation email sent to ' + studentEmail);
         console.log('===================================');
         console.log('');
@@ -335,7 +327,12 @@ app.post('/api/registrations', async (req, res) => {
                 notification: {
                     status: 'sent',
                     email: studentEmail,
-                    subject: 'Course Registration Confirmation'
+                    subject: 'Course Registration Confirmation',
+                    body: 'Dear ' + studentName + ',\n\nYour registration has been confirmed for:\n' + 
+                          courseCodes.join(', ') + '\n\nTotal Credits: ' + totalCredits + 
+                          '\nTotal Fees: K' + feeAmount + '\n\nPlease make payment by ' + 
+                          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString() + 
+                          '\n\nRegards,\nCentral State University'
                 }
             }
         });
@@ -429,5 +426,7 @@ app.listen(PORT, () => {
     console.log('=========================================');
     console.log('Server running on port ' + PORT);
     console.log('Database: ' + (dbConnected ? 'PostgreSQL connected' : 'In-memory mode'));
+    console.log('Currency: Zambian Kwacha (ZMW)');
+    console.log('Fee per credit: K1500');
     console.log('=========================================');
 });

@@ -2,7 +2,7 @@
   - type: web
     name: central-state-sis
     runtime: node
-    repo: https://github.com/joelkay21/csu-sis.git  # You'll update this after creating GitHub repo
+    repo: https://github.com/joelkay21/csu-sis.git
     plan: free
     envVars:
       - key: NODE_VERSION

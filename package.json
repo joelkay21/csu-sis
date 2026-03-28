@@ -1,7 +1,7 @@
 ﻿{
   "name": "central-state-university-sis",
   "version": "1.0.0",
-  "description": "Student Information System for Central State University",
+  "description": "Student Information System for Central State University - Zambian Kwacha Version",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
